@@ -17,6 +17,7 @@ interface RideContextType {
   requestRide: (pickup: Location, dropoff: Location) => void;
   acceptRide: (driverId: string) => void;
   rejectRide: () => void;
+  resetRide: () => void;
   arriveAtPickup: () => void;
   startTrip: () => void;
   completeTrip: () => void;
@@ -141,17 +142,53 @@ export const RideProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // 3. Driver rejects/declines the offer
-  const rejectRide = () => {
+  const rejectRide = async () => {
     if (!trip) return;
     cleanupSimulation();
     
-    // For local evaluation, we mark request as cancelled/rejected
     const updatedTrip: TripState = {
       ...trip,
-      status: 'IDLE',
-      driverId: null,
+      status: 'REJECTED',
+      driverId: 'driver_namlo',
     };
+    
+    // Broadcast state update
     syncManager.broadcast('TRIP_UPDATE', updatedTrip);
+
+    // Save history logs externally via REST POST request
+    try {
+      await saveTripToHistory({
+        tripId: trip.tripId,
+        riderId: trip.riderId,
+        driverId: 'driver_namlo',
+        pickupAddress: trip.pickup?.address || 'Pickup Point',
+        dropoffAddress: trip.dropoff?.address || 'Dropoff Point',
+        price: trip.price,
+        status: 'REJECTED',
+        durationMinutes: 0,
+      });
+      refreshHistory();
+    } catch (err) {
+      console.error('Failed to log reject state:', err);
+    }
+  };
+
+  // 3b. Reset the simulation back to idle state
+  const resetRide = () => {
+    cleanupSimulation();
+    const idleTrip: TripState = {
+      tripId: '',
+      status: 'IDLE',
+      riderId: '',
+      driverId: null,
+      pickup: null,
+      dropoff: null,
+      driverLocation: null,
+      route: [],
+      price: 0,
+      timestamp: 0,
+    };
+    syncManager.broadcast('TRIP_UPDATE', idleTrip);
   };
 
   // 4. Driver arrives at pickup location
@@ -323,6 +360,7 @@ export const RideProvider: React.FC<{ children: React.ReactNode }> = ({ children
         requestRide,
         acceptRide,
         rejectRide,
+        resetRide,
         arriveAtPickup,
         startTrip,
         completeTrip,

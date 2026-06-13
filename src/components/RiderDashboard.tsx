@@ -9,6 +9,7 @@ export const RiderDashboard: React.FC = () => {
     trip,
     requestRide,
     cancelTrip,
+    resetRide,
     history,
     isLoadingHistory,
     refreshHistory,
@@ -111,6 +112,8 @@ export const RiderDashboard: React.FC = () => {
                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                   : trip.status === 'IN_PROGRESS'
                   ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                  : trip.status === 'REJECTED'
+                  ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                   : 'bg-slate-800 text-slate-400'
               }`}
             >
@@ -171,7 +174,7 @@ export const RiderDashboard: React.FC = () => {
               </div>
             )}
 
-            {(trip.status === 'COMPLETED' || trip.status === 'CANCELLED') && (
+            {(trip.status === 'COMPLETED' || trip.status === 'CANCELLED' || trip.status === 'REJECTED') && (
               <div className="flex flex-col gap-1 w-full">
                 <div
                   className={`text-sm font-semibold flex items-center gap-1.5 ${
@@ -183,12 +186,14 @@ export const RiderDashboard: React.FC = () => {
                   ) : (
                     <AlertTriangle className="w-4 h-4" />
                   )}
-                  Ride {trip.status === 'COMPLETED' ? 'Finished' : 'Cancelled'}
+                  Ride {trip.status === 'COMPLETED' ? 'Finished' : trip.status === 'CANCELLED' ? 'Cancelled' : 'Rejected'}
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-400 font-medium">
                   {trip.status === 'COMPLETED'
                     ? `Thank you for riding! Trip cost NPR ${trip.price}.`
-                    : 'This ride request was cancelled.'}
+                    : trip.status === 'CANCELLED'
+                    ? 'This ride request was cancelled.'
+                    : 'The driver declined this ride request.'}
                 </p>
               </div>
             )}
@@ -215,6 +220,16 @@ export const RiderDashboard: React.FC = () => {
             >
               <X className="w-3.5 h-3.5" />
               Cancel Trip Request
+            </button>
+          )}
+
+          {/* Reset simulation when in terminal state */}
+          {(trip.status === 'COMPLETED' || trip.status === 'CANCELLED' || trip.status === 'REJECTED') && (
+            <button
+              onClick={resetRide}
+              className="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-all flex items-center justify-center gap-1.5"
+            >
+              Clear Simulation State
             </button>
           )}
         </div>

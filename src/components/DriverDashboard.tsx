@@ -10,6 +10,7 @@ export const DriverDashboard: React.FC = () => {
     driverCoords,
     acceptRide,
     rejectRide,
+    resetRide,
     arriveAtPickup,
     startTrip,
     completeTrip,
@@ -214,18 +215,26 @@ export const DriverDashboard: React.FC = () => {
               </div>
             )}
 
-            {(trip.status === 'COMPLETED' || trip.status === 'CANCELLED') && (
-              <div className="text-center py-2 text-xs">
-                <span className="text-slate-400">Trip has been resolved (State: </span>
-                <strong className={trip.status === 'COMPLETED' ? 'text-emerald-400' : 'text-rose-400'}>
-                  {trip.status}
-                </strong>
-                <span className="text-slate-400">)</span>
+            {(trip.status === 'COMPLETED' || trip.status === 'CANCELLED' || trip.status === 'REJECTED') && (
+              <div className="flex flex-col gap-2">
+                <div className="text-center py-2 text-xs">
+                  <span className="text-slate-400">Trip has been resolved (State: </span>
+                  <strong className={trip.status === 'COMPLETED' ? 'text-emerald-400' : 'text-rose-400'}>
+                    {trip.status}
+                  </strong>
+                  <span className="text-slate-400">)</span>
+                </div>
+                <button
+                  onClick={resetRide}
+                  className="w-full py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors"
+                >
+                  Clear Simulation State
+                </button>
               </div>
             )}
 
             {/* Cancel job button */}
-            {trip.status !== 'COMPLETED' && trip.status !== 'CANCELLED' && (
+            {trip.status !== 'COMPLETED' && trip.status !== 'CANCELLED' && trip.status !== 'REJECTED' && (
               <button
                 onClick={cancelTrip}
                 className="w-full mt-2 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold border border-rose-500/20 transition-colors"

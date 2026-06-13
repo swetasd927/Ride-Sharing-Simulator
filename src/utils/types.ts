@@ -12,7 +12,8 @@ export type TripStatus =
   | 'ARRIVED'
   | 'IN_PROGRESS'
   | 'COMPLETED'
-  | 'CANCELLED';
+  | 'CANCELLED'
+  | 'REJECTED';
 
 export interface TripState {
   tripId: string;
@@ -35,7 +36,7 @@ export interface TripHistoryRecord {
   pickupAddress: string;
   dropoffAddress: string;
   price: number;
-  status: 'COMPLETED' | 'CANCELLED';
+  status: 'COMPLETED' | 'CANCELLED' | 'REJECTED';
   durationMinutes: number;
   timestamp: string;
 }
