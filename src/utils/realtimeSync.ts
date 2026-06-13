@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 type SyncCallback = (data: { event: string; payload: any }) => void;

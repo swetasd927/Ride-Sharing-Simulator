@@ -89,6 +89,7 @@ export async function fetchTripHistory(): Promise<TripHistoryRecord[]> {
       if (error) {
         console.warn('Supabase select query failed (table may not exist yet):', error.message);
       } else if (data) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dbRecords = data.map((item: any) => ({
           id: item.id,
           tripId: item.trip_id,
