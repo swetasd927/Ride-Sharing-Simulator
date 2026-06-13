@@ -7,10 +7,6 @@ import { pickupIcon, dropoffIcon, driverIcon } from '../utils/mapIcons';
 export const MapContainer: React.FC = () => {
   const { driverCoords, trip } = useRide();
   
-  // EVALUATION: CRITERIA 3 - RENDERING OPTIMIZATION
-  // We avoid React rendering/Virtual DOM overhead by preserving the raw Leaflet map instance 
-  // and layers in mutable Refs. Updates directly mutate the Leaflet structures, retaining 
-  // user settings (e.g. pan/zoom scale) and avoiding heavy visual reflows during 400ms interval ticks.
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const driverMarkerRef = useRef<L.Marker | null>(null);
@@ -39,9 +35,6 @@ export const MapContainer: React.FC = () => {
       }).addTo(mapRef.current);
     }
 
-    // EVALUATION: CRITERIA 4 - CODE HYGIENE & CLEANUP
-    // On unmount, the map instance is completely garbage collected from memory 
-    // to prevent continuous listener leaks and DOM node retention.
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
