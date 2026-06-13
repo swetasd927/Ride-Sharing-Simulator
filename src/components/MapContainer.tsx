@@ -132,6 +132,23 @@ export const MapContainer: React.FC = () => {
     }
   }, [trip?.tripId, trip?.status]);
 
+  // 4. Automatically invalidate size on container width/height shift
+  useEffect(() => {
+    const map = mapRef.current;
+    const container = mapContainerRef.current;
+    if (!map || !container) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   return (
     <div className="relative w-full h-full overflow-hidden rounded-xl shadow-inner border border-slate-800 bg-slate-900">
       <div ref={mapContainerRef} className="w-full h-full" />
