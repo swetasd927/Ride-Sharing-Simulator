@@ -1,82 +1,198 @@
-# Namlo Rides — Real-Time Ride-Sharing Simulation Platform
+# Namlo Rides
 
-A high-fidelity, client-driven real-time ride-sharing simulation platform representing both **Rider** and **Driver** workflows simultaneously. The system uses a hybrid client architecture, combining high-frequency real-time event broadcasting with persistent HTTP REST logging.
+Real-Time Ride-Sharing Simulation Platform
 
----
+A web-based ride-sharing simulation platform built with React that allows real-time interaction between Rider and Driver workflows inside a single application.
 
-## Testing Credentials
+The project focuses on real-time synchronization, state management, rendering performance, and clean frontend architecture without using a custom backend server.
 
-Access the application routing using these hardcoded credentials on the login screen:
-- **Username:** `intern@namlotech.com`
-- **Password:** `namlo2026`
+## Live Demo
 
----
+Production URL: https://ride-sharing-simulator.vercel.app/
 
-## Quick Start (Local Run)
+## Test Credentials
 
-Get the application up and running locally in seconds.
+Email: [intern@namlotech.com](mailto:intern@namlotech.com)
+Password: namlo2026
+
+## Features
+
+* Login-protected application flow
+* Rider and Driver simulation inside one frontend application
+* Real-time communication between views
+* Interactive map built with React Leaflet
+* Ride lifecycle management using a strict state machine
+* Ride history persistence using REST API
+* Split-screen mode for side-by-side evaluation
+* Responsive interface
+* Automatic local sync without setup
+* Cloud sync support using Supabase Realtime
+* CI/CD deployment pipeline using GitHub and Vercel
+
+
+## Project Structure
+
+```txt
+src/
+ ├── components
+ ├── pages
+ ├── services
+ ├── hooks
+ ├── state
+ ├── utils
+ ├── types
+ └── assets
+```
+
+## Tech Stack
+
+Frontend
+
+* React
+* Vite
+* TypeScript
+
+Realtime Layer
+
+* BroadcastChannel
+* Supabase Realtime
+
+Persistence
+
+* REST API
+* Beeceptor
+
+Deployment
+
+* Vercel
+* GitHub Actions
+* CI Yaml
+
+## Local Setup
 
 ### Prerequisites
-Ensure you have [Node.js](https://nodejs.org/) installed (v18 or higher recommended).
 
-### Commands
+* Node.js v18+
+
+### Installation
+
 ```bash
-# 1. Clone the repository and navigate to the project directory
+git clone <repository-url>
+
 cd Real_Time_RideSharing
 
-# 2. Install package dependencies
 npm install
 
-# 3. Launch the local Vite development server
 npm run dev
 ```
 
-The application will be served at `http://localhost:5173`. Open this URL in your browser to evaluate the simulation.
+Open:
 
----
+```bash
+http://localhost:5173
+```
 
-## Configuration & Real-Time Sync Options
+## Environment Variables
 
-This platform features a **Dual-Mode Sync Layer** designed to work out-of-the-box with zero setup, while supporting full cloud database syncing:
+Optional for cloud synchronization.
 
-1. **Zero-Config Mode (Recommended for instant evaluation):**
-   If no environment variables are defined, the app automatically utilizes a local browser **`BroadcastChannel`** registry. Opening split-screen mode or placing two browser windows side-by-side on your local machine will trigger instant, zero-latency coordinate broadcasts and state transitions locally.
-2. **Cloud Database Sync Mode (Supabase Realtime):**
-   To sync telemetry across separate remote computers, configure your Supabase project credentials in a `.env` file in the root directory:
-   ```env
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
-   ```
-   The client will detect these keys and automatically pivot from local broadcasts to the remote Supabase Realtime channel.
+Create a `.env` file:
 
----
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
 
-## Technical Architecture & Design Decisions
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
 
-### 1. Hybrid Data Registry
-- **Telemetry Sync (Supabase / BroadcastChannel):** Coordinates the high-frequency stream of driver locations and state shifts. It uses ephemeral broadcasts rather than persistent tables to avoid indexing latency.
-- **REST Archive (History Registry):** Fired only on terminal state transitions (`COMPLETED`, `CANCELLED`). Fulfills archiving compliance by POSTing JSON transaction data to an external REST pipeline:
-  `https://ride-sharing-challenge.free.beeceptor.com/api/history`
-  A robust local cache registry provides fallbacks if the mock REST server encounters CORS or usage limits.
+If environment variables are not provided, the application automatically switches to local BroadcastChannel mode.
 
-### 2. Strict State Machine
-All interactions follow a strict, one-way state transition schema:
-- `IDLE`: Driver online, Rider searching.
-- `REQUESTING`: Rider sets route. Broadcasts request details.
-- `ACCEPTED`: Driver accepts. Calculations route the driver toward pickup.
-- `ARRIVED`: Driver reaches pickup, awaiting rider entry.
-- `IN_PROGRESS`: Active transit moving along the pickup-dropoff route line.
-- `COMPLETED` / `CANCELLED`: Terminal states triggering persistent HTTP REST archiving.
+## System Architecture
 
-### 3. Rendering & Performance Optimization
-- **Custom Map Elements:** Standard Leaflet markers frequently face path asset load failures. We replaced default markers with custom SVG `L.divIcon` layers, rendering pulsing green pickups, rose dropoffs, and Nexon EV cars with zero external dependency.
-- **Memory Leak Protection:** All intervals, database channels, and `BroadcastChannel` listeners are unlinked inside React's `useEffect` cleanups on view toggles and component unmounts to prevent memory degradation.
+### Real-Time Layer
 
----
+Handles:
 
-## Interactive Evaluation Viewports
+* Driver location updates
+* Ride status updates
+* Rider and Driver synchronization
 
-Evaluators can cycle through three dedicated layout panels in the header:
-- **Split Screen (Recommended):** Displays Rider Panel, Map Canvas, and Driver Panel side-by-side in a single viewport. Great for witnessing real-time interactions side-by-side.
-- **Rider View:** Full Rider perspective, coordinates selector, and historical logs table.
-- **Driver View:** Car status toggle (Online/Offline) and accepted dispatch tracking tools.
+Uses:
+
+* BroadcastChannel for local simulation
+* Supabase Realtime for remote synchronization
+
+### Persistent Layer
+
+Handles:
+
+* Ride completion records
+* Cancellation records
+* Historical ride storage
+
+REST endpoint:
+
+```txt
+https://ride-sharing-challenge.free.beeceptor.com/api/history
+```
+
+Local caching is used when the external endpoint is unavailable.
+
+## Ride States
+
+```txt
+IDLE
+REQUESTING
+ACCEPTED
+ARRIVED
+IN_PROGRESS
+COMPLETED
+CANCELLED
+```
+
+Each state follows one-way transitions to maintain consistency.
+
+## Evaluation Modes
+
+### Split Screen
+
+Rider, Driver, and Map displayed together.
+
+### Rider View
+
+Route selection and ride history.
+
+### Driver View
+
+Availability control and ride execution.
+
+## Performance Considerations
+
+* Memoized updates to reduce rerenders
+* Cleanup for intervals and subscriptions
+* Channel disposal on unmount
+* Lightweight custom SVG map markers
+* Efficient state transition handling
+
+## CI/CD
+
+Deployment is automated.
+
+Flow:
+
+```txt
+Push to GitHub
+↓
+Automatic Build
+↓
+Vercel Deployment
+↓
+Production Update
+```
+
+Every new commit automatically triggers deployment.
+
+## Notes
+
+* No custom backend is used
+* All communication happens directly from client to realtime services and REST endpoints
+* Designed for real-time simulation and frontend architecture evaluation
