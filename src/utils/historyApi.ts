@@ -1,8 +1,7 @@
 import type { TripHistoryRecord } from './types';
 
-
-// Default public mock REST API endpoint. Evaluators can configure their own in the UI if needed.
-const DEFAULT_API_ENDPOINT = 'https://ride-sharing-challenge.free.beeceptor.com/api/history';
+const isCustomEndpoint = !!import.meta.env.VITE_API_ENDPOINT;
+const API_ENDPOINT = (import.meta.env.VITE_API_ENDPOINT as string) || 'https://jsonplaceholder.typicode.com/posts';
 
 export async function saveTripToHistory(
   record: Omit<TripHistoryRecord, 'id' | 'timestamp'>
@@ -20,7 +19,7 @@ export async function saveTripToHistory(
 
   // 2. Fire the asynchronous REST POST to preserve the transaction log externally
   try {
-    const response = await fetch(DEFAULT_API_ENDPOINT, {
+    const response = await fetch(API_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -29,7 +28,7 @@ export async function saveTripToHistory(
     });
     
     if (response.ok) {
-      console.log('Preserved transaction log in REST API.');
+      console.log('Preserved transaction log in external mock REST API.');
     } else {
       console.warn(`REST API responded with status ${response.status}. Using localStorage fallback.`);
     }
@@ -44,13 +43,20 @@ export async function saveTripToHistory(
 }
 
 export async function fetchTripHistory(): Promise<TripHistoryRecord[]> {
+  const local = getLocalHistory();
+
+  // If the user hasn't configured a custom REST endpoint, load from local storage
+  // to avoid fetching unrelated placeholder items or facing 404s on expired default mocks
+  if (!isCustomEndpoint) {
+    return local;
+  }
+
   try {
-    const response = await fetch(DEFAULT_API_ENDPOINT);
+    const response = await fetch(API_ENDPOINT);
     if (response.ok) {
       const data = await response.json();
       if (Array.isArray(data)) {
         // Merge REST results and local storage logs to ensure maximum visibility
-        const local = getLocalHistory();
         const combined = [...data, ...local];
         const seen = new Set<string>();
         return combined.filter((item) => {
@@ -64,7 +70,7 @@ export async function fetchTripHistory(): Promise<TripHistoryRecord[]> {
     console.warn('Could not fetch trip history from external REST API. Loading localStorage logs.', err);
   }
 
-  return getLocalHistory();
+  return local;
 }
 
 function getLocalHistory(): TripHistoryRecord[] {
